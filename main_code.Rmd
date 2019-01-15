@@ -1,0 +1,57 @@
+---
+title: "main_code"
+author: "David Cobb"
+date: "1/15/2019"
+output: github_document
+---
+
+## Load Libraries
+
+Insert a code chunk to load the `tidyverse`, `unvotes`, and `lubridate` packages.
+Use the `knitr` option `include = FALSE`. 
+
+Why can't I get this to work?
+{r libs, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## Plot the Data
+
+Choose a country in the data set and replicate what we did in class by 
+substituting that country for Australia. Knit the document so that a new
+`github-intro.md` file is created, add it to the repo, commit it, and push it
+to github. 
+
+```{r}
+library(tidyverse)
+library(unvotes)
+library(lubridate)
+
+## Data Manipulation
+un_votes_joined <- un_votes %>%
+  filter(country %in% c("United States of America", "Mexico")) %>%
+  inner_join(un_roll_calls, by = "rcid") %>%
+  inner_join(un_roll_call_issues, by = "rcid") %>%
+  group_by(country, year = year(date), issue) %>%
+  summarize(
+    votes = n(),
+    percent_yes = mean(vote == "yes")
+  ) %>%
+  filter(votes > 5) # only use records where there are more than 5 votes
+
+## Make Plots
+
+p <- ggplot(un_votes_joined,
+            aes(x = year, y = percent_yes, color = country))
+p + geom_point() +
+  geom_smooth(method = "loess", se = FALSE) +
+  facet_wrap(~ issue) +
+  scale_color_brewer(palette = "Dark2", labels = c("Mexico", "U.S.A.")) +
+  labs(
+    title = "Percentage of 'Yes' votes in the UN General Assembly",
+    subtitle = "1946 to 2015",
+    y = "% Yes",
+    x = "Year",
+    color = "Country"
+  )
+```
+
